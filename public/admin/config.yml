@@ -1,14 +1,15 @@
 # Decap CMS configuration
 #
-# For production on GitHub Pages set `repo` below to your own
-# <username>/<repository> and register a GitHub OAuth app (or use an external
-# OAuth provider) — see the README for details.
+# Production CMS access uses the GitHub OAuth gateway deployed on Vercel.
+# Local editing remains available with `npm run cms`.
 #
 # For local editing just run:  npm run cms  (then npm run dev, open /admin/)
 backend:
   name: github
-  repo: YOUR_GITHUB_USERNAME/YOUR_REPO_NAME
+  repo: dev-bishal/MusicPlayer
   branch: main
+  base_url: https://decap-oauth-bishal.vercel.app
+  auth_endpoint: api/auth
 
 # Lets `npx decap-server` proxy writes straight to the local filesystem
 local_backend: true
