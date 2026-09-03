@@ -1,0 +1,11 @@
+{
+  "id": "summer-static",
+  "title": "Summer Static",
+  "artist": "The Midnight Echo",
+  "album": "Echoes of Summer",
+  "genre": "Indie Rock",
+  "date": "2026-07-28",
+  "cover": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=500&q=80",
+  "audio": "/media/audio/demo-track-3.mp3",
+  "duration": "0:20"
+}

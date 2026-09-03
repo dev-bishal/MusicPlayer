@@ -1,0 +1,14 @@
+{
+  "id": "chill-vibes",
+  "name": "Chill Vibes",
+  "description": "Slow down and unwind with mellow, dreamy tracks perfect for a lazy afternoon.",
+  "color": "from-blue-500 to-cyan-400",
+  "icon": "fa-wind",
+  "songs": [
+    "tidal-glow",
+    "moonlit-tide",
+    "drifting",
+    "willow-lane",
+    "glass-horizon"
+  ]
+}

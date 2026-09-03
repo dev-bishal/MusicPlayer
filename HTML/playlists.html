@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player | Home</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@material-tailwind/html@latest/scripts/ripple.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '475px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+        }
+        
+        /* Swiper custom styles */
+        .swiper-button-next, .swiper-button-prev {
+            color: #4f46e5;
+            background-color: rgba(255, 255, 255, 0.9);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 16px;
+        }
+        .dark .swiper-button-next, .dark .swiper-button-prev {
+            background-color: rgba(45, 55, 72, 0.9);
+            color: #a5b4fc;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .swiper-button-next, .swiper-button-prev {
+                display: none;
+            }
+        }
+        
+        /* Progress bar */
+        #progress {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            border-radius: 2px;
+            background: #d1d5db;
+            outline: none;
+        }
+        .dark #progress {
+            background: #4a5568;
+        }
+        #progress::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+        #progress::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* Smooth transitions */
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        
+        /* Player animation */
+        @keyframes pulse-playing {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+        .playing .now-playing-icon {
+            animation: pulse-playing 2s infinite;
+        }
+        
+        /* Mobile sidebar overlay */
+        .sidebar-overlay {
+            display: none;
+        }
+        .sidebar-open .sidebar-overlay {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+        }
+        
+        /* Responsive adjustments */
+        .mobile-player-expanded {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: white;
+        }
+        .dark .mobile-player-expanded {
+            background: #1f2937;
+        }
+        
+        /* Bottom navigation for mobile */
+        .mobile-bottom-nav {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                border-top: 1px solid #e5e7eb;
+                z-index: 30;
+                padding: 8px 0;
+            }
+            .dark .mobile-bottom-nav {
+                background: #1f2937;
+                border-top: 1px solid #374151;
+            }
+            .mobile-player-expanded .mobile-bottom-nav {
+                display: none;
+            }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 50;
+            }
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="lg:hidden fixed top-4 left-4 z-30 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-bars text-gray-700 dark:text-gray-300"></i>
+    </button>
+    
+    <div class="flex h-screen">
+        <!-- Sidebar Overlay (Mobile Only) -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col z-40">
+            <!-- Logo -->
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-music text-white"></i>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Melody<span class="text-indigo-600 dark:text-indigo-400">Box</span></h1>
+                    </div>
+                    <button id="close-sidebar" class="lg:hidden w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <i class="fas fa-times text-gray-600 dark:text-gray-300"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 overflow-y-auto">
+                <div class="mb-8">
+                    <h3 class="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider mb-4 px-2">Menu</h3>
+                    <ul>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                                <i class="fas fa-home text-lg"></i>
+                                <span class="font-medium">Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/playlists.html" class="sidebar-item flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-compact-disc text-lg"></i>
+                                <span class="font-medium">Playlists</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-microphone-alt text-lg"></i>
+                                <span class="font-medium">Artists</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-record-vinyl text-lg"></i>
+                                <span class="font-medium">Albums</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-heart text-lg"></i>
+                                <span class="font-medium">Favorites</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-history text-lg"></i>
+                                <span class="font-medium">Recently Played</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Playlists -->
+                <div>
+                    <h3 class="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wider mb-4 px-2">Your Playlists</h3>
+                    <ul>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-plus-circle text-gray-400"></i>
+                                <span>Create New Playlist</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <div class="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded flex items-center justify-center">
+                                    <i class="fas fa-fire text-white text-xs"></i>
+                                </div>
+                                <span>Top Hits 2024</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-400 rounded flex items-center justify-center">
+                                    <i class="fas fa-wind text-white text-xs"></i>
+                                </div>
+                                <span>Chill Vibes</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="sidebar-item flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-400 rounded flex items-center justify-center">
+                                    <i class="fas fa-running text-white text-xs"></i>
+                                </div>
+                                <span>Workout Mix</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Theme toggle and user -->
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <button id="theme-toggle" class="sidebar-item p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i id="theme-icon" class="fas fa-moon text-lg"></i>
+                    </button>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <img id="user-avatar" src="https://ui-avatars.com/api/?name=John+Doe&background=4f46e5&color=fff&size=128" alt="User" class="w-10 h-10 rounded-full cursor-pointer border-2 border-indigo-500">
+                            <div id="user-dropdown" class="hidden absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-20">
+                                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</a>
+                                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
+                                <hr class="my-2 border-gray-200 dark:border-gray-700">
+                                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="ml-12 lg:ml-0">
+                        <h2 class="text-xl md:text-2xl font-bold">Playlists</h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm hidden md:block">Welcome back! Explore your music</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 md:space-x-6">
+                        <div class="relative hidden md:block">
+                            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" placeholder="Search..." class="pl-12 pr-4 py-3 w-64 lg:w-96 bg-gray-100 dark:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        
+                        <button class="md:hidden sidebar-item p-2.5 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                            <i class="fas fa-search text-lg"></i>
+                        </button>
+                        
+                        <button class="sidebar-item p-2.5 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                            <i class="fas fa-bell text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mobile Search (Hidden by default) -->
+                <div id="mobile-search" class="mt-4 hidden md:hidden">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" placeholder="Search songs, artists, albums..." class="pl-12 pr-4 py-3 w-full bg-gray-100 dark:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </header>
+            <!-- Playlist Page Container -->
+            <div class="p-4 md:p-8">
+                <!-- Page Header -->
+                <div class="mb-6 md:mb-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold">Your Playlists</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Manage and organize your music collections</p>
+            </div>
+            <button class="mt-4 md:mt-0 px-4 md:px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-medium flex items-center justify-center space-x-2 transition-colors">
+                <i class="fas fa-plus"></i>
+                <span>Create New Playlist</span>
+            </button>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" placeholder="Search playlists..." class="pl-12 pr-4 py-3 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2">
+                                <i class="fas fa-sort-amount-down"></i>
+                                <span>Sort</span>
+                            </button>
+                            <button class="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2">
+                                <i class="fas fa-filter"></i>
+                                <span>Filter</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playlists Grid -->
+                <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6">
+                    <!-- Create New Playlist Card -->
+                    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-2 border-dashed border-indigo-200 dark:border-gray-700 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[200px] hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors cursor-pointer group">
+            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800 transition-colors">
+                <i class="fas fa-plus text-2xl text-indigo-600 dark:text-indigo-400"></i>
+            </div>
+            <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">Create New</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm text-center">Start a new playlist collection</p>
+                    </div>
+
+                    <!-- Playlist Card 1 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center">
+                                <i class="fas fa-fire text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    24 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Top Hits 2024</h3>
+                                <button class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">The hottest tracks of this year</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">4.2K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">2h 14m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 2 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-blue-500 to-cyan-400 flex items-center justify-center">
+                                <i class="fas fa-wind text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    18 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Chill Vibes</h3>
+                                <button class="text-red-500 dark:text-red-400">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Relaxing tunes for your downtime</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">3.8K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">1h 28m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 3 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-green-500 to-emerald-400 flex items-center justify-center">
+                                <i class="fas fa-running text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    32 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Workout Mix</h3>
+                                <button class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">High energy tracks for your workout</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">5.1K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">2h 45m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 4 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-orange-500 to-yellow-400 flex items-center justify-center">
+                                <i class="fas fa-car text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    28 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Road Trip</h3>
+                                <button class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Perfect soundtrack for your journey</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">2.9K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">2h 10m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 5 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-purple-500 to-indigo-400 flex items-center justify-center">
+                                <i class="fas fa-brain text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    15 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Focus Flow</h3>
+                                <button class="text-red-500 dark:text-red-400">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Concentration-enhancing music</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">1.7K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">1h 05m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 6 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-red-500 to-pink-400 flex items-center justify-center">
+                                <i class="fas fa-glass-cheers text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    30 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Party Anthems</h3>
+                                <button class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Ultimate party playlist</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">6.3K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">2h 30m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 7 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-teal-500 to-green-400 flex items-center justify-center">
+                                <i class="fas fa-umbrella-beach text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    22 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Summer Chill</h3>
+                                <button class="text-red-500 dark:text-red-400">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Beach and summer vibes</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">3.4K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">1h 45m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card 8 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+                        <div class="relative">
+                            <div class="h-40 bg-gradient-to-r from-gray-700 to-gray-900 flex items-center justify-center">
+                                <i class="fas fa-moon text-white text-4xl"></i>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <button class="w-10 h-10 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                                    19 songs
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <h3 class="font-bold text-lg truncate">Sleep & Relax</h3>
+                                <button class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Calming music for better sleep</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-300 font-medium">2.1K likes</span>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">1h 32m</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More Button -->
+                <div class="mt-8 md:mt-12 text-center">
+                    <button class="px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full font-medium transition-colors">
+                        Load More Playlists
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="#" class="flex-1 flex flex-col items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <i class="fas fa-home text-lg mb-1"></i>
+            <span class="text-xs font-medium">Home</span>
+        </a>
+        <a href="#" class="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="fas fa-compact-disc text-lg mb-1"></i>
+            <span class="text-xs">Playlists</span>
+        </a>
+        <a href="#" class="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="fas fa-search text-lg mb-1"></i>
+            <span class="text-xs">Search</span>
+        </a>
+        <a href="#" class="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="fas fa-heart text-lg mb-1"></i>
+            <span class="text-xs">Favorites</span>
+        </a>
+        <a href="#" class="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="fas fa-user text-lg mb-1"></i>
+            <span class="text-xs">Profile</span>
+        </a>
+    </nav>
+    
+    <!-- Music Player -->
+    <div class="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 md:p-4 shadow-lg z-20" id="music-player">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <!-- Now Playing -->
+                <div class="flex items-center space-x-3 md:space-x-4 mb-3 md:mb-0 w-full md:w-1/4">
+                    <div class="relative">
+                        <img id="current-song-cover" src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Album Cover" class="w-12 h-12 md:w-14 md:h-14 rounded-lg object-cover">
+                        <div class="now-playing-icon absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-play text-white text-xs"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 id="current-song-title" class="font-semibold text-sm truncate">Blinding Lights</h4>
+                        <p id="current-song-artist" class="text-gray-500 dark:text-gray-400 text-xs truncate">The Weeknd</p>
+                    </div>
+                    <button class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hidden md:block">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button id="expand-player" class="md:hidden text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                
+                <!-- Player Controls -->
+                <div class="w-full md:w-2/4 mb-3 md:mb-0">
+                    <div class="flex items-center justify-center space-x-4 md:space-x-6 mb-2 md:mb-3">
+                        <button id="shuffle-btn" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hidden md:block">
+                            <i class="fas fa-random"></i>
+                        </button>
+                        <button id="prev-btn" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            <i class="fas fa-step-backward text-lg md:text-xl"></i>
+                        </button>
+                        <button id="play-btn" class="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center">
+                            <i id="play-icon" class="fas fa-play"></i>
+                        </button>
+                        <button id="next-btn" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                            <i class="fas fa-step-forward text-lg md:text-xl"></i>
+                        </button>
+                        <button id="repeat-btn" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hidden md:block">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 md:space-x-4">
+                        <span id="current-time" class="text-xs text-gray-500 w-10 text-right">0:00</span>
+                        <input type="range" id="progress" class="flex-1" min="0" max="100" value="30">
+                        <span id="duration" class="text-xs text-gray-500 w-10">3:45</span>
+                    </div>
+                </div>
+                
+                <!-- Extra Controls -->
+                <div class="hidden md:flex items-center justify-end space-x-4 w-full md:w-1/4">
+                    <button id="backward-10s" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400" title="Backward 10s">
+                        <i class="fas fa-backward"></i> 10s
+                    </button>
+                    <button id="forward-10s" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400" title="Forward 10s">
+                        10s <i class="fas fa-forward"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <div class="flex items-center">
+                        <button class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 mr-2">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <input type="range" id="volume" class="w-20" min="0" max="100" value="80">
+                    </div>
+                </div>
+                
+                <!-- Mobile mini controls -->
+                <div class="flex items-center justify-between w-full md:hidden mt-2">
+                    <button id="mobile-shuffle" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <i class="fas fa-random text-sm"></i>
+                    </button>
+                    <button id="mobile-backward-10s" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm">
+                        <i class="fas fa-backward mr-1"></i>10s
+                    </button>
+                    <button id="mobile-forward-10s" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm">
+                        10s<i class="fas fa-forward ml-1"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <i class="fas fa-heart text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data.js will contain music data -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        // Mobile responsive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                body.classList.add('sidebar-open');
+            });
+            
+            closeSidebarBtn.addEventListener('click', function() {
+                body.classList.remove('sidebar-open');
+            });
+            
+            sidebarOverlay.addEventListener('click', function() {
+                body.classList.remove('sidebar-open');
+            });
+            
+            // Mobile search toggle
+            const searchButtons = document.querySelectorAll('.fa-search');
+            searchButtons.forEach(btn => {
+                btn.closest('button')?.addEventListener('click', function() {
+                    const mobileSearch = document.getElementById('mobile-search');
+                    mobileSearch.classList.toggle('hidden');
+                });
+            });
+            
+            // Mobile player expand
+            const expandPlayerBtn = document.getElementById('expand-player');
+            const musicPlayer = document.getElementById('music-player');
+            
+            expandPlayerBtn.addEventListener('click', function() {
+                musicPlayer.classList.toggle('mobile-player-expanded');
+                if (musicPlayer.classList.contains('mobile-player-expanded')) {
+                    expandPlayerBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                    // Update player for expanded view
+                    updateExpandedPlayerUI();
+                } else {
+                    expandPlayerBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                }
+            });
+            
+            // Initialize Swipers with responsive settings
+            const playlistsSwiper = new Swiper('.playlists-swiper', {
+                slidesPerView: 1.5,
+                spaceBetween: 12,
+                navigation: {
+                    nextEl: '.playlists-swiper .swiper-button-next',
+                    prevEl: '.playlists-swiper .swiper-button-prev',
+                },
+                breakpoints: {
+                    475: {
+                        slidesPerView: 2,
+                    },
+                    640: {
+                        slidesPerView: 2.5,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                        spaceBetween: 20,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                        spaceBetween: 20,
+                    },
+                    1280: {
+                        slidesPerView: 5,
+                        spaceBetween: 20,
+                    },
+                },
+            });
+            
+            // Artists swiper
+            const artistsSwiper = new Swiper('.artists-swiper', {
+                slidesPerView: 1.5,
+                spaceBetween: 12,
+                navigation: {
+                    nextEl: '.artists-swiper .swiper-button-next',
+                    prevEl: '.artists-swiper .swiper-button-prev',
+                },
+                breakpoints: {
+                    475: {
+                        slidesPerView: 2,
+                    },
+                    640: {
+                        slidesPerView: 2.5,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                        spaceBetween: 20,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                        spaceBetween: 20,
+                    },
+                    1280: {
+                        slidesPerView: 5,
+                        spaceBetween: 20,
+                    },
+                },
+            });
+            
+            // Albums swiper
+            const albumsSwiper = new Swiper('.albums-swiper', {
+                slidesPerView: 1.5,
+                spaceBetween: 12,
+                navigation: {
+                    nextEl: '.albums-swiper .swiper-button-next',
+                    prevEl: '.albums-swiper .swiper-button-prev',
+                },
+                breakpoints: {
+                    475: {
+                        slidesPerView: 2,
+                    },
+                    640: {
+                        slidesPerView: 2.5,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                        spaceBetween: 20,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                        spaceBetween: 20,
+                    },
+                    1280: {
+                        slidesPerView: 5,
+                        spaceBetween: 20,
+                    },
+                },
+            });
+            
+            // Load data and generate UI
+            loadData();
+        });
+        
+        // Update expanded player UI
+        function updateExpandedPlayerUI() {
+            const player = document.getElementById('music-player');
+            if (player.classList.contains('mobile-player-expanded')) {
+                // Add more controls to the expanded player
+                const playerContent = player.querySelector('.max-w-screen-2xl .flex');
+                
+                // Add album art and more info for expanded view
+                if (!document.querySelector('.expanded-album-art')) {
+                    const expandedSection = document.createElement('div');
+                    expandedSection.className = 'expanded-album-art flex flex-col items-center justify-center p-6';
+                    expandedSection.innerHTML = `
+                        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Album" class="w-64 h-64 rounded-2xl shadow-lg mb-6">
+                        <h3 class="text-2xl font-bold text-center mb-2">Blinding Lights</h3>
+                        <p class="text-gray-500 dark:text-gray-400 text-center mb-6">The Weeknd • After Hours • 2020</p>
+                        <div class="flex items-center justify-center space-x-6">
+                            <button class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="fas fa-heart text-red-500"></i>
+                            </button>
+                            <button class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="fas fa-list text-gray-700 dark:text-gray-300"></i>
+                            </button>
+                            <button class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="fas fa-share text-gray-700 dark:text-gray-300"></i>
+                            </button>
+                        </div>
+                    `;
+                    player.querySelector('.max-w-screen-2xl').insertBefore(expandedSection, player.querySelector('.max-w-screen-2xl .flex'));
+                }
+            }
+        }
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        themeToggle.addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        }
+        
+        // User dropdown
+        const userAvatar = document.getElementById('user-avatar');
+        const userDropdown = document.getElementById('user-dropdown');
+        
+        userAvatar.addEventListener('click', function() {
+            userDropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!userAvatar.contains(event.target) && !userDropdown.contains(event.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Player controls
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const backward10sBtn = document.getElementById('backward-10s');
+        const forward10sBtn = document.getElementById('forward-10s');
+        const mobileBackward10sBtn = document.getElementById('mobile-backward-10s');
+        const mobileForward10sBtn = document.getElementById('mobile-forward-10s');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const mobileShuffleBtn = document.getElementById('mobile-shuffle');
+        const repeatBtn = document.getElementById('repeat-btn');
+        const progressBar = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const currentSongCover = document.getElementById('current-song-cover');
+        const currentSongTitle = document.getElementById('current-song-title');
+        const currentSongArtist = document.getElementById('current-song-artist');
+        
+        let isPlaying = false;
+        let currentTime = 0;
+        let duration = 225; // 3:45 in seconds
+        
+        // Format time from seconds to MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        // Update the time display
+        function updateTimeDisplay() {
+            currentTimeEl.textContent = formatTime(currentTime);
+            durationEl.textContent = formatTime(duration);
+            progressBar.value = (currentTime / duration) * 100;
+        }
+        
+        // Toggle play/pause
+        playBtn.addEventListener('click', function() {
+            isPlaying = !isPlaying;
+            const playerContainer = document.querySelector('.fixed.bottom-16');
+            
+            if (isPlaying) {
+                playIcon.classList.remove('fa-play');
+                playIcon.classList.add('fa-pause');
+                playerContainer.classList.add('playing');
+                
+                // Simulate song progress
+                if (window.songInterval) clearInterval(window.songInterval);
+                window.songInterval = setInterval(function() {
+                    if (currentTime < duration) {
+                        currentTime++;
+                        updateTimeDisplay();
+                    } else {
+                        // Song ended, play next
+                        isPlaying = false;
+                        playIcon.classList.remove('fa-pause');
+                        playIcon.classList.add('fa-play');
+                        playerContainer.classList.remove('playing');
+                        clearInterval(window.songInterval);
+                    }
+                }, 1000);
+            } else {
+                playIcon.classList.remove('fa-pause');
+                playIcon.classList.add('fa-play');
+                playerContainer.classList.remove('playing');
+                clearInterval(window.songInterval);
+            }
+        });
+        
+        // Update progress bar when dragged
+        progressBar.addEventListener('input', function() {
+            currentTime = (progressBar.value / 100) * duration;
+            updateTimeDisplay();
+        });
+        
+        // Skip forward 10 seconds
+        forward10sBtn?.addEventListener('click', skipForward10s);
+        mobileForward10sBtn?.addEventListener('click', skipForward10s);
+        
+        function skipForward10s() {
+            currentTime = Math.min(currentTime + 10, duration);
+            updateTimeDisplay();
+        }
+        
+        // Skip backward 10 seconds
+        backward10sBtn?.addEventListener('click', skipBackward10s);
+        mobileBackward10sBtn?.addEventListener('click', skipBackward10s);
+        
+        function skipBackward10s() {
+            currentTime = Math.max(currentTime - 10, 0);
+            updateTimeDisplay();
+        }
+        
+        // Next song
+        nextBtn.addEventListener('click', function() {
+            // In a real app, this would load the next song
+            // For demo, we'll just change to a different song
+            currentSongTitle.textContent = "Save Your Tears";
+            currentSongArtist.textContent = "The Weeknd";
+            currentSongCover.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80";
+            
+            // Reset player
+            isPlaying = false;
+            playIcon.classList.remove('fa-pause');
+            playIcon.classList.add('fa-play');
+            document.querySelector('.fixed.bottom-16').classList.remove('playing');
+            clearInterval(window.songInterval);
+            
+            // Reset time
+            currentTime = 0;
+            duration = 215; // 3:35
+            updateTimeDisplay();
+            
+            // Update expanded player if open
+            updateExpandedPlayerContent("Save Your Tears", "The Weeknd");
+        });
+        
+        // Previous song
+        prevBtn.addEventListener('click', function() {
+            // In a real app, this would load the previous song
+            currentSongTitle.textContent = "Blinding Lights";
+            currentSongArtist.textContent = "The Weeknd";
+            currentSongCover.src = "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80";
+            
+            // Reset player
+            isPlaying = false;
+            playIcon.classList.remove('fa-pause');
+            playIcon.classList.add('fa-play');
+            document.querySelector('.fixed.bottom-16').classList.remove('playing');
+            clearInterval(window.songInterval);
+            
+            // Reset time
+            currentTime = 0;
+            duration = 225; // 3:45
+            updateTimeDisplay();
+            
+            // Update expanded player if open
+            updateExpandedPlayerContent("Blinding Lights", "The Weeknd");
+        });
+        
+        // Update expanded player content
+        function updateExpandedPlayerContent(title, artist) {
+            const expandedArt = document.querySelector('.expanded-album-art');
+            if (expandedArt) {
+                expandedArt.querySelector('h3').textContent = title;
+                expandedArt.querySelector('p').textContent = `${artist} • After Hours • 2020`;
+                expandedArt.querySelector('img').src = currentSongCover.src;
+            }
+        }
+        
+        // Shuffle and repeat buttons
+        shuffleBtn?.addEventListener('click', toggleShuffle);
+        mobileShuffleBtn?.addEventListener('click', toggleShuffle);
+        
+        function toggleShuffle() {
+            const target = shuffleBtn || mobileShuffleBtn;
+            target.classList.toggle('text-indigo-600');
+            target.classList.toggle('dark:text-indigo-400');
+        }
+        
+        repeatBtn?.addEventListener('click', function() {
+            repeatBtn.classList.toggle('text-indigo-600');
+            repeatBtn.classList.toggle('dark:text-indigo-400');
+        });
+        
+        // Initialize time display
+        updateTimeDisplay();
+        
+        // Load data and generate UI elements
+        function loadData() {
+            generateRecentlyPlayed();
+            generatePlaylists();
+            generateArtists();
+            generateAlbums();
+        }
+        
+        // Generate recently played songs
+        function generateRecentlyPlayed() {
+            const recentlyPlayedContainer = document.querySelector('.grid.grid-cols-2.sm\\:grid-cols-3.md\\:grid-cols-4.lg\\:grid-cols-5');
+            
+            const songs = [
+                { title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", time: "3:45", cover: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { title: "Save Your Tears", artist: "The Weeknd", album: "After Hours", time: "3:35", cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { title: "Billie Jean", artist: "Michael Jackson", album: "Thriller", time: "4:54", cover: "https://images.unsplash.com/photo-1519281682544-5f37c4b14c47?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { title: "Shape of You", artist: "Ed Sheeran", album: "÷", time: "3:54", cover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { title: "Bad Guy", artist: "Billie Eilish", album: "When We All Fall Asleep", time: "3:14", cover: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+            ];
+            
+            songs.forEach(song => {
+                const songCard = document.createElement('div');
+                songCard.className = 'bg-white dark:bg-gray-800 rounded-lg md:rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow cursor-pointer';
+                songCard.innerHTML = `
+                    <div class="relative">
+                        <img src="${song.cover}" alt="${song.album}" class="w-full h-32 md:h-48 object-cover">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button class="w-8 h-8 md:w-12 md:h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center">
+                                <i class="fas fa-play text-xs md:text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-3 md:p-4">
+                        <h4 class="font-semibold truncate text-sm md:text-base">${song.title}</h4>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm truncate">${song.artist}</p>
+                        <div class="flex items-center justify-between mt-2 md:mt-3">
+                            <span class="text-gray-500 dark:text-gray-400 text-xs">${song.time}</span>
+                            <button class="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                <i class="far fa-heart text-xs md:text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                recentlyPlayedContainer.appendChild(songCard);
+            });
+        }
+        
+        // Generate playlist swiper slides
+        function generatePlaylists() {
+            const playlistsContainer = document.querySelector('.playlists-swiper .swiper-wrapper');
+            
+            const playlists = [
+                { name: "Top Hits 2024", count: 24, color: "from-pink-500 to-rose-500", icon: "fa-fire" },
+                { name: "Chill Vibes", count: 18, color: "from-blue-500 to-cyan-400", icon: "fa-wind" },
+                { name: "Workout Mix", count: 32, color: "from-green-500 to-emerald-400", icon: "fa-running" },
+                { name: "Road Trip", count: 28, color: "from-orange-500 to-yellow-400", icon: "fa-car" },
+                { name: "Focus Flow", count: 15, color: "from-purple-500 to-indigo-400", icon: "fa-brain" },
+                { name: "Party Anthems", count: 30, color: "from-red-500 to-pink-400", icon: "fa-glass-cheers" },
+            ];
+            
+            playlists.forEach(playlist => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg md:rounded-xl p-4 md:p-5 shadow hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="w-full h-28 md:h-40 mb-3 md:mb-4 rounded-lg bg-gradient-to-r ${playlist.color} flex items-center justify-center">
+                            <i class="fas ${playlist.icon} text-white text-2xl md:text-4xl"></i>
+                        </div>
+                        <h4 class="font-bold md:text-lg mb-1 truncate">${playlist.name}</h4>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm">${playlist.count} songs</p>
+                    </div>
+                `;
+                playlistsContainer.appendChild(slide);
+            });
+        }
+        
+        // Generate artists swiper slides
+        function generateArtists() {
+            const artistsContainer = document.querySelector('.artists-swiper .swiper-wrapper');
+            
+            const artists = [
+                { name: "The Weeknd", genre: "R&B/Pop", color: "from-red-900 to-black", image: "https://images.unsplash.com/photo-1519281682544-5f37c4b14c47?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Michael Jackson", genre: "Pop", color: "from-gray-800 to-black", image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Taylor Swift", genre: "Pop/Country", color: "from-purple-900 to-pink-700", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Ed Sheeran", genre: "Pop/Folk", color: "from-orange-900 to-red-700", image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Billie Eilish", genre: "Pop/Alternative", color: "from-green-900 to-gray-800", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Drake", genre: "Hip-Hop/R&B", color: "from-blue-900 to-purple-800", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+            ];
+            
+            artists.forEach(artist => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg md:rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="relative h-36 md:h-48">
+                            <img src="${artist.image}" alt="${artist.name}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t ${artist.color} opacity-60"></div>
+                            <div class="absolute bottom-3 md:bottom-4 left-3 md:left-4">
+                                <h4 class="font-bold text-base md:text-xl text-white">${artist.name}</h4>
+                                <p class="text-white/80 text-xs md:text-sm">${artist.genre}</p>
+                            </div>
+                        </div>
+                        <div class="p-3 md:p-4 flex justify-between items-center">
+                            <span class="text-gray-500 dark:text-gray-400 text-xs md:text-sm">Top Artist</span>
+                            <button class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center">
+                                <i class="fas fa-play text-xs md:text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                artistsContainer.appendChild(slide);
+            });
+        }
+        
+        // Generate albums swiper slides
+        function generateAlbums() {
+            const albumsContainer = document.querySelector('.albums-swiper .swiper-wrapper');
+            
+            const albums = [
+                { name: "After Hours", artist: "The Weeknd", year: "2020", color: "from-red-500 to-purple-600", image: "https://images.unsplash.com/photo-1519281682544-5f37c4b14c47?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Thriller", artist: "Michael Jackson", year: "1982", color: "from-gray-700 to-black", image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Midnights", artist: "Taylor Swift", year: "2022", color: "from-blue-900 to-purple-800", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "÷", artist: "Ed Sheeran", year: "2017", color: "from-orange-500 to-yellow-400", image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "When We All Fall Asleep", artist: "Billie Eilish", year: "2019", color: "from-green-700 to-gray-900", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+                { name: "Views", artist: "Drake", year: "2016", color: "from-blue-800 to-gray-800", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" },
+            ];
+            
+            albums.forEach(album => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg md:rounded-xl overflow-hidden shadow hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="relative h-32 md:h-40">
+                            <img src="${album.image}" alt="${album.name}" class="w-full h-full object-cover">
+                            <div class="absolute top-2 md:top-3 right-2 md:right-3 w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${album.color} rounded-full flex items-center justify-center">
+                                <i class="fas fa-play text-white text-xs md:text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 md:p-4">
+                            <h4 class="font-bold text-sm md:text-lg truncate">${album.name}</h4>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm truncate">${album.artist}</p>
+                            <div class="flex items-center justify-between mt-2 md:mt-3">
+                                <span class="text-gray-500 dark:text-gray-400 text-xs">${album.year}</span>
+                                <button class="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                    <i class="far fa-heart text-xs md:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                albumsContainer.appendChild(slide);
+            });
+        }
+    </script>
+</body>
+</html>

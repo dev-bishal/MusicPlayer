@@ -1,0 +1,11 @@
+{
+  "id": "moonlit-tide",
+  "title": "Moonlit Tide",
+  "artist": "Luna Waves",
+  "album": "Ocean Dreams",
+  "genre": "Chill",
+  "date": "2026-07-12",
+  "cover": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=500&q=80",
+  "audio": "/media/audio/demo-track-2.mp3",
+  "duration": "0:30"
+}

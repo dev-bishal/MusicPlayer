@@ -1,0 +1,11 @@
+{
+  "id": "willow-lane",
+  "title": "Willow Lane",
+  "artist": "Ember & Oak",
+  "album": "Acoustic Sessions",
+  "genre": "Folk",
+  "date": "2026-05-30",
+  "cover": "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=500&q=80",
+  "audio": "/media/audio/demo-track-2.mp3",
+  "duration": "0:30"
+}

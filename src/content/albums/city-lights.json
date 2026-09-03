@@ -1,0 +1,8 @@
+{
+  "id": "city-lights",
+  "title": "City Lights",
+  "artist": "Neon District",
+  "year": 2024,
+  "cover": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80",
+  "color": "from-gray-700 to-black"
+}

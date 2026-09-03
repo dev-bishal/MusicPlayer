@@ -1,0 +1,13 @@
+{
+  "id": "workout-mix",
+  "name": "Workout Mix",
+  "description": "High-energy beats to keep you moving through every rep and every mile.",
+  "color": "from-green-500 to-emerald-400",
+  "icon": "fa-running",
+  "songs": [
+    "skyline-pulse",
+    "voltage",
+    "after-dark",
+    "neon-horizon"
+  ]
+}

@@ -1,0 +1,165 @@
+@import 'tailwindcss';
+
+@source "./content";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --breakpoint-xs: 475px;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  font-family: var(--font-sans);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+/* Range inputs (progress + volume) */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #d1d5db;
+  outline: none;
+}
+.dark input[type='range'] {
+  background: #4a5568;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+}
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: none;
+}
+
+/* Large progress bar on the Player page */
+input[type='range'].progress-large {
+  height: 6px;
+  border-radius: 3px;
+}
+input[type='range'].progress-large::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+  transition: all 0.2s ease;
+  background: #6366f1;
+}
+input[type='range'].progress-large::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.3);
+}
+input[type='range'].progress-large::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+  background: #6366f1;
+}
+
+/* Player "now playing" pulse */
+@keyframes pulse-playing {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+.playing .now-playing-icon {
+  animation: pulse-playing 2s infinite;
+}
+
+/* CD disc on the Player page */
+.cd-disc {
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #2d3748 0%, #1a202c 70%, #111827 100%);
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.5),
+    inset 0 0 40px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.cd-album-art {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+@keyframes spin-disc {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+.cd-album-art {
+  transform: translate(-50%, -50%);
+}
+.cd-spinning .cd-album-art {
+  animation: spin-disc 6s linear infinite;
+}
+@media (max-width: 768px) {
+  .cd-disc {
+    width: 250px;
+    height: 250px;
+  }
+  .cd-album-art {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+/* Drag & drop states for the queue */
+.dragging {
+  opacity: 0.5;
+}
+.drag-over {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-top: 2px solid #6366f1;
+}
+
+/* Hide horizontal scrollbars on carousel rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}

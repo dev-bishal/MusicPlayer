@@ -1,0 +1,122 @@
+# Decap CMS configuration
+#
+# For production on GitHub Pages set `repo` below to your own
+# <username>/<repository> and register a GitHub OAuth app (or use an external
+# OAuth provider) — see the README for details.
+#
+# For local editing just run:  npm run cms  (then npm run dev, open /admin/)
+backend:
+  name: github
+  repo: YOUR_GITHUB_USERNAME/YOUR_REPO_NAME
+  branch: main
+
+# Lets `npx decap-server` proxy writes straight to the local filesystem
+local_backend: true
+
+media_folder: 'public/media/uploads'
+public_folder: '/media/uploads'
+
+collections:
+  - name: songs
+    label: Songs
+    folder: src/content/songs
+    format: json
+    extension: json
+    create: true
+    identifier_field: id
+    slug: '{{id}}'
+    fields:
+      - { name: id, label: 'ID (unique slug, e.g. my-song)', widget: string }
+      - { name: title, label: Title, widget: string }
+      - { name: artist, label: 'Artist (must match an Artist name)', widget: string }
+      - { name: album, label: 'Album (must match an Album title)', widget: string, required: false }
+      - { name: genre, label: Genre, widget: string, required: false }
+      - { name: date, label: 'Date Added', widget: string, hint: 'YYYY-MM-DD' }
+      - { name: cover, label: 'Cover Image (URL or upload)', widget: string }
+      - { name: audio, label: 'Audio File (MP3)', widget: file, media_folder: '/public/media/audio', public_folder: '/media/audio' }
+      - { name: duration, label: 'Duration (M:SS)', widget: string }
+
+  - name: albums
+    label: Albums
+    folder: src/content/albums
+    format: json
+    extension: json
+    create: true
+    identifier_field: id
+    slug: '{{id}}'
+    fields:
+      - { name: id, label: 'ID (unique slug)', widget: string }
+      - { name: title, label: Title, widget: string }
+      - { name: artist, label: Artist, widget: string }
+      - { name: year, label: Year, widget: number, value_type: int }
+      - { name: cover, label: 'Cover Image (URL)', widget: string }
+      - name: color
+        label: 'Accent Gradient'
+        widget: select
+        default: 'from-indigo-500 to-purple-600'
+        options:
+          - 'from-indigo-500 to-purple-600'
+          - 'from-red-500 to-purple-600'
+          - 'from-orange-500 to-yellow-400'
+          - 'from-blue-800 to-gray-800'
+          - 'from-gray-700 to-black'
+          - 'from-pink-500 to-rose-500'
+          - 'from-green-500 to-emerald-400'
+
+  - name: artists
+    label: Artists
+    folder: src/content/artists
+    format: json
+    extension: json
+    create: true
+    identifier_field: id
+    slug: '{{id}}'
+    fields:
+      - { name: id, label: 'ID (unique slug)', widget: string }
+      - { name: name, label: Name, widget: string }
+      - { name: genre, label: Genre, widget: string }
+      - { name: image, label: 'Image (URL)', widget: string }
+      - name: color
+        label: 'Overlay Gradient'
+        widget: select
+        default: 'from-gray-800 to-black'
+        options:
+          - 'from-gray-800 to-black'
+          - 'from-purple-900 to-pink-700'
+          - 'from-blue-900 to-purple-800'
+          - 'from-red-900 to-black'
+          - 'from-orange-900 to-red-700'
+          - 'from-green-900 to-gray-800'
+
+  - name: playlists
+    label: Playlists
+    folder: src/content/playlists
+    format: json
+    extension: json
+    create: true
+    identifier_field: id
+    slug: '{{id}}'
+    fields:
+      - { name: id, label: 'ID (unique slug)', widget: string }
+      - { name: name, label: Name, widget: string }
+      - { name: description, label: Description, widget: text }
+      - name: color
+        label: 'Cover Gradient'
+        widget: select
+        default: 'from-pink-500 to-rose-500'
+        options:
+          - 'from-pink-500 to-rose-500'
+          - 'from-blue-500 to-cyan-400'
+          - 'from-green-500 to-emerald-400'
+          - 'from-orange-500 to-yellow-400'
+          - 'from-purple-500 to-indigo-400'
+          - 'from-red-500 to-pink-400'
+      - name: icon
+        label: 'Icon (Font Awesome class)'
+        widget: select
+        default: 'fa-music'
+        options: ['fa-music', 'fa-fire', 'fa-wind', 'fa-running', 'fa-brain', 'fa-glass-cheers', 'fa-car', 'fa-heart', 'fa-star']
+      - name: songs
+        label: 'Songs (list of song IDs, in order)'
+        widget: list
+        field: { name: song, label: 'Song ID', widget: string }

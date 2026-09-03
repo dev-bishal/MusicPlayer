@@ -1,0 +1,14 @@
+{
+  "id": "top-hits-2026",
+  "name": "Top Hits 2026",
+  "description": "The most played songs right now. Updated with fresh tracks from your favorite artists.",
+  "color": "from-pink-500 to-rose-500",
+  "icon": "fa-fire",
+  "songs": [
+    "neon-horizon",
+    "golden-hour",
+    "skyline-pulse",
+    "midnight-drive",
+    "paper-planes"
+  ]
+}

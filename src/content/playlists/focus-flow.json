@@ -1,0 +1,12 @@
+{
+  "id": "focus-flow",
+  "name": "Focus Flow",
+  "description": "Ambient and instrumental tracks to help you concentrate and get things done.",
+  "color": "from-purple-500 to-indigo-400",
+  "icon": "fa-brain",
+  "songs": [
+    "drifting",
+    "glass-horizon",
+    "moonlit-tide"
+  ]
+}
